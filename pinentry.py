@@ -52,8 +52,7 @@ class Pinentry:
     def _set_pinentry(self, attribute, value=None):
         if value is None:
             return
-        self._writeline_to_pinentry_stdin('{} {}'.format(attribute, value))
-        last_line = self._read_response()[-1]
+        last_line = self._input('{} {}'.format(attribute, value))[-1]
         if last_line.startswith('OK'):
             return
         elif last_line.startswith('ERR'):
@@ -79,9 +78,12 @@ class Pinentry:
         self._pinentry.stdin.write(text + '\n')
         self._pinentry.stdin.flush()
 
+    def _input(self, text):
+        self._writeline_to_pinentry_stdin(text)
+        return self._read_response()
+
     def ask_for_pin(self):
-        self._writeline_to_pinentry_stdin('GETPIN')
-        for line in self._read_response():
+        for line in self._input('GETPIN'):
             matcher = re.match('^D (.*)', line)
             if matcher is not None:
                 return matcher.group(1)
@@ -91,8 +93,7 @@ class Pinentry:
                 raise PinentryError(error_code, message)
 
     def ask_for_confirmation(self):
-        self._writeline_to_pinentry_stdin('CONFIRM')
-        last_line = self._read_response()[-1]
+        last_line = self._input('CONFIRM')[-1]
         if last_line.startswith('OK'):
             return True
         elif last_line.startswith('ERR'):
@@ -101,8 +102,7 @@ class Pinentry:
                 return False
 
     def show_message(self):
-        self._writeline_to_pinentry_stdin('MESSAGE')
-        last_line = self._read_response()[-1]
+        last_line = self._input('MESSAGE')[-1]
         if last_line.startswith('OK'):
             return
         elif last_line.startswith('ERR'):
