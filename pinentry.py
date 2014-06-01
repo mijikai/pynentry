@@ -121,3 +121,37 @@ def _create_property_for_parameter(parameter):
 for key in Pinentry._parameters:
     setattr(Pinentry, key, _create_property_for_parameter(key))
 
+
+def main():
+    import argparse
+    import sys
+    parser = argparse.ArgumentParser(description='Run pinentry program')
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    for pinentry_action in ['ask_for_pin', 'ask_for_confirmation',
+            'show_message']:
+        arg_name = '--{}'.format(pinentry_action.replace('_', '-'))
+        action_method = getattr(Pinentry, pinentry_action)
+        group.add_argument(arg_name, const=action_method, action='store_const',
+                dest='__pinentry_action')
+
+    for param in Pinentry._parameters:
+        arg_name = '--{}'.format(param.replace('_', '-'))
+        parser.add_argument(arg_name)
+
+    args = parser.parse_args()
+    pinentry_action_method = args.__pinentry_action
+    del args.__pinentry_action
+
+    pinentry = Pinentry()
+    for param, value in vars(args).items():
+        setattr(pinentry, param, value)
+    ret = pinentry_action_method(pinentry)
+    if ret in [True, False]:
+        sys.exit(int(not ret))
+    elif ret is not None:
+        print(ret)
+
+
+if __name__ == '__main__':
+    main()
