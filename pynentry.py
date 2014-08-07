@@ -117,9 +117,9 @@ def _create_class_property_for_pinentry_property(property_name):
         self._set_pinentry_property(self._property_commands[property_name], value)
     return property(getter, setter)
 
-for name in Pinentry._property_commands:
-    setattr(Pinentry, name,
-            _create_class_property_for_pinentry_property(name))
+for _name in Pinentry._property_commands:
+    setattr(Pinentry, _name,
+            _create_class_property_for_pinentry_property(_name))
 
 
 def main():
