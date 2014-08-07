@@ -10,7 +10,7 @@ class PinentryError(Exception):
         self._message = message
 
 class Pinentry:
-    _parameters = {
+    _property_commands = {
             'description'         : 'SETDESC',
             'prompt'              : 'SETPROMPT',
             'title'               : 'SETTITLE',
@@ -24,9 +24,9 @@ class Pinentry:
     }
 
     def __init__(self, binary_path='pinentry', global_grab=True, display=None):
-        self._parameter_values = {}
-        for key in self._parameters:
-            self._parameter_values[key] = None
+        self._pinentry_properties = {}
+        for name in self._property_commands:
+            self._pinentry_properties[name] = None
         if display is None:
             display = os.environ.get('DISPLAY')
         proc = [binary_path]
@@ -49,10 +49,10 @@ class Pinentry:
     def __del__(self):
         self._pinentry.terminate()
 
-    def _set_pinentry(self, attribute, value=None):
+    def _set_pinentry_property(self, setter_command, value=None):
         if value is None:
             return
-        last_line = self._input('{} {}'.format(attribute, value))[-1]
+        last_line = self._input('{} {}'.format(setter_command, value))[-1]
         if last_line.startswith('OK'):
             return
         elif last_line.startswith('ERR'):
@@ -110,16 +110,17 @@ class Pinentry:
             raise PinentryError(error_code, message)
 
 
-def _create_property_for_parameter(parameter):
+def _create_class_property_for_pinentry_property(property_name):
     def getter(self):
-        return self._parameter_values[parameter]
+        return self._pinentry_properties[property_name]
     def setter(self, value):
-        self._parameter_values[parameter] = value
-        self._set_pinentry(self._parameters[parameter], value)
+        self._pinentry_properties[property_name] = value
+        self._set_pinentry_property(self._property_commands[property_name], value)
     return property(getter, setter)
 
-for key in Pinentry._parameters:
-    setattr(Pinentry, key, _create_property_for_parameter(key))
+for name in Pinentry._property_commands:
+    setattr(Pinentry, name,
+            _create_class_property_for_pinentry_property(name))
 
 
 def main():
@@ -135,8 +136,8 @@ def main():
         group.add_argument(arg_name, const=action_method, action='store_const',
                 dest='__pinentry_action')
 
-    for param in Pinentry._parameters:
-        arg_name = '--{}'.format(param.replace('_', '-'))
+    for name in Pinentry._property_commands:
+        arg_name = '--{}'.format(name.replace('_', '-'))
         parser.add_argument(arg_name)
 
     args = parser.parse_args()
@@ -144,8 +145,8 @@ def main():
     del args.__pinentry_action
 
     pinentry = Pinentry()
-    for param, value in vars(args).items():
-        setattr(pinentry, param, value)
+    for pinentry_property, value in vars(args).items():
+        setattr(pinentry, pinentry_property, value)
     ret = pinentry_action_method(pinentry)
     if ret in [True, False]:
         sys.exit(int(not ret))
