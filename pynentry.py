@@ -143,8 +143,9 @@ def main():
     pinentry_action_method = args.__pinentry_action
     del args.__pinentry_action
 
+    args_dict = vars(args)
     pinentry = Pinentry()
-    for pinentry_property, value in vars(args).items():
+    for pinentry_property, value in args_dict.items():
         setattr(pinentry, pinentry_property, value)
     ret = pinentry_action_method(pinentry)
     if ret in [True, False]:
