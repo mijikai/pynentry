@@ -122,6 +122,14 @@ for _name in Pinentry._property_commands:
             _create_class_property_for_pinentry_property(_name))
 
 
+def _underscore_to_dash(string):
+    return string.replace('_', '-')
+
+
+def _make_long_arg_name(argname):
+    return '--{}'.format(argname)
+
+
 def main():
     import argparse
     import sys
@@ -130,13 +138,13 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     for pinentry_action in ['ask_for_pin', 'ask_for_confirmation',
             'show_message']:
-        arg_name = '--{}'.format(pinentry_action.replace('_', '-'))
+        arg_name = _make_long_arg_name(_underscore_to_dash(pinentry_action))
         action_method = getattr(Pinentry, pinentry_action)
         group.add_argument(arg_name, const=action_method, action='store_const',
                 dest='__pinentry_action')
 
     for name in Pinentry._property_commands:
-        arg_name = '--{}'.format(name.replace('_', '-'))
+        arg_name = _make_long_arg_name(_underscore_to_dash(name))
         parser.add_argument(arg_name)
 
     args = parser.parse_args()
