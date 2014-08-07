@@ -132,6 +132,7 @@ def _make_long_arg_name(argname):
 
 def main():
     import argparse
+    import inspect
     import sys
     parser = argparse.ArgumentParser(description='Run pinentry program')
 
@@ -143,6 +144,36 @@ def main():
         group.add_argument(arg_name, const=action_method, action='store_const',
                 dest='__pinentry_action')
 
+    init_parameter = list(inspect.signature(
+        Pinentry.__init__).parameters.values())[1:]
+    init_parameter_names = []
+    for param in init_parameter:
+        if param.kind in (param.POSITIONAL_ONLY, param.KEYWORD_ONLY):
+            required = True
+            default = None
+        elif param.kind == param.POSITIONAL_OR_KEYWORD:
+            required = False
+            default = param.default
+            if isinstance(default, bool):
+                # When the default value is a boolean, it means that the
+                # argumnt must be a boolean. We create two exclusive options to
+                # handle the true and false value.
+                yes_base_name = _underscore_to_dash(param.name)
+                no_base_name = _underscore_to_dash('no_{}'.format(param.name))
+
+                group = parser.add_mutually_exclusive_group(required=required)
+                group.add_argument(_make_long_arg_name(yes_base_name),
+                        dest=param.name, action='store_true')
+                group.add_argument(_make_long_arg_name(no_base_name),
+                        dest=param.name, action='store_false')
+                group.set_defaults(**{param.name:default})
+                continue
+        else:
+            continue
+        init_parameter_names.append(param.name)
+        arg_name = _make_long_arg_name(_underscore_to_dash(param.name))
+        parser.add_argument(arg_name, required=required, default=default)
+
     for name in Pinentry._property_commands:
         arg_name = _make_long_arg_name(_underscore_to_dash(name))
         parser.add_argument(arg_name)
@@ -152,7 +183,7 @@ def main():
     del args.__pinentry_action
 
     args_dict = vars(args)
-    pinentry = Pinentry()
+    pinentry = Pinentry(**{n: args_dict.pop(n) for n in init_parameter_names})
     for pinentry_property, value in args_dict.items():
         setattr(pinentry, pinentry_property, value)
     ret = pinentry_action_method(pinentry)
