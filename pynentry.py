@@ -17,7 +17,6 @@ class Pinentry:
             'ok_button_text'      : 'SETOK',
             'cancel_button_text'  : 'SETCANCEL',
             'error_text'          : 'SETERROR',
-            # 'quality_bar_tooltip' : 'SETQUALITYBAR_TT',
             'ttyname'             : 'OPTION ttyname',
             'ttytype'             : 'OPTION ttytype',
             'lc_ctype'            : 'OPTION lc-ctype',
