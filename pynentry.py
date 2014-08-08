@@ -102,6 +102,7 @@ class Pinentry:
             error_code, message = self._parse_error(last_line)
             if message == 'canceled':
                 return False
+            raise PinentryError(error_code, message)
 
     def show_message(self):
         last_line = self._input('MESSAGE')[-1]
