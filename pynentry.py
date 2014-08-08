@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import locale
 import os
 import re
 import subprocess
+import sys
 
 
 class PinentryError(Exception):
@@ -43,10 +45,13 @@ class Pinentry:
 
         last_line = self._read_response()[-1]
         if last_line.startswith('OK'):
+            self.ttyname = os.ttyname(sys.stdout.fileno())
+            self.lc_ctype = '{}.{}'.format(*locale.getdefaultlocale())
             return
         elif last_line.startswith('ERR'):
             error_code, message = self._parse_error(last_line)
             raise PinentryError(error_code, message)
+
 
     def __del__(self):
         self.terminate()
