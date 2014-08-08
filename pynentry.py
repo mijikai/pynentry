@@ -22,7 +22,8 @@ class Pinentry:
             'lc_ctype'            : 'OPTION lc-ctype',
     }
 
-    def __init__(self, binary_path='pinentry', global_grab=True, display=None):
+    def __init__(self, binary_path='pinentry', global_grab=True, timeout=0,
+            display=None):
         self._pinentry_properties = {}
         for name in self._property_commands:
             self._pinentry_properties[name] = None
@@ -34,6 +35,7 @@ class Pinentry:
         if display is not None:
             proc.append('--display')
             proc.append(display)
+        proc.extend(['--timeout', str(timeout)])
         self._pinentry = subprocess.Popen(proc,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
