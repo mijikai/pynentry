@@ -33,13 +33,14 @@ class Pinentry:
         if not global_grab:
             proc.append('--no-global-grab')
         if display is not None:
-            proc.append('--display')
-            proc.append(display)
+            proc.extend(['--display', display])
         proc.extend(['--timeout', str(timeout)])
+
         self._pinentry = subprocess.Popen(proc,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 universal_newlines=True)
+
         last_line = self._read_response()[-1]
         if last_line.startswith('OK'):
             return
@@ -189,7 +190,7 @@ def main():
     for pinentry_property, value in args_dict.items():
         setattr(pinentry, pinentry_property, value)
     ret = pinentry_action_method(pinentry)
-    if ret in [True, False]:
+    if isinstance(ret, bool):
         sys.exit(int(not ret))
     elif ret is not None:
         print(ret)
