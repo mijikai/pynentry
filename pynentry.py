@@ -49,7 +49,7 @@ class Pinentry:
             raise PinentryError(error_code, message)
 
     def __del__(self):
-        self._pinentry.terminate()
+        self.terminate()
 
     def _set_pinentry_property(self, setter_command, value=None):
         if value is None:
@@ -111,6 +111,8 @@ class Pinentry:
             error_code, message = self._parse_error(last_line)
             raise PinentryError(error_code, message)
 
+    def terminate(self):
+        self._pinentry.terminate()
 
 def _create_class_property_for_pinentry_property(property_name):
     def getter(self):
