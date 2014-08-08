@@ -45,7 +45,7 @@ class Pinentry:
 
         last_line = self._read_response()[-1]
         if last_line.startswith('OK'):
-            self.ttyname = os.ttyname(sys.stdout.fileno())
+            self.ttyname = os.ttyname(sys.stdin.fileno())
             self.lc_ctype = '{}.{}'.format(*locale.getdefaultlocale())
             return
         elif last_line.startswith('ERR'):
