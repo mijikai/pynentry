@@ -180,6 +180,7 @@ def main():
                 yes_base_name = _underscore_to_dash(param.name)
                 no_base_name = _underscore_to_dash('no_{}'.format(param.name))
 
+                init_parameter_names.append(param.name)
                 group = parser.add_mutually_exclusive_group(required=required)
                 group.add_argument(_make_long_arg_name(yes_base_name),
                         dest=param.name, action='store_true')
@@ -189,6 +190,7 @@ def main():
                 continue
         else:
             continue
+
         init_parameter_names.append(param.name)
         arg_name = _make_long_arg_name(_underscore_to_dash(param.name))
         parser.add_argument(arg_name, required=required, default=default)
